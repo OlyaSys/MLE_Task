@@ -16,8 +16,6 @@ from sklearn.preprocessing import StandardScaler
 from rabbit.consumer import Consumer
 from utils.logger import LOGGER
 
-#  Этот сервис классифицирует акции в зависимости от их риска.
-# Он обучает модель классификации (например, Random Forest) на данных о волатильности, средней доходности и корреляции с рынком.
 
 class RiskClassifier:
 
