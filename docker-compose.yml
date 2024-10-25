@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  main-service:
+    build:
+      context: .
+      dockerfile: main_service/Dockerfile
+    container_name: main-service
+    environment:
+      RMQ_URL: ${RMQ_URL:-amqp://user:pass@rabbitmq:5672}
+      RMQ_RISK_CLF_QUEUE: ${RMQ_RISK_CLF_QUEUE:-invest-portfolio.risk-clf.queue}
+      RMQ_STOCK_PRED_QUEUE: ${RMQ_STOCK_PRED_QUEUE:-invest-portfolio.stock-pred.queue}
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      risk-classifier:
+        condition: service_started
+      stock-predictor:
+        condition: service_started
+
+  risk-classifier:
+    build:
+      context: .
+      dockerfile: risk_classifier/Dockerfile
+    container_name: risk-classifier
+    environment:
+      RMQ_URL: ${RMQ_URL:-amqp://user:pass@rabbitmq:5672}
+      RMQ_SERVICE_QUEUE: ${RMQ_RISK_CLF_QUEUE:-invest-portfolio.risk-clf.queue}
+      prefetch_count: 1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  stock-predictor:
+    build:
+      context: .
+      dockerfile: stock_predictor/Dockerfile
+    container_name: stock-predictor
+    environment:
+      RMQ_URL: ${RMQ_URL:-amqp://user:pass@rabbitmq:5672}
+      RMQ_SERVICE_QUEUE: ${RMQ_STOCK_PRED_QUEUE:-invest-portfolio.stock-pred.queue}
+      prefetch_count: 1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RMQ_USER:-user}
+      RABBITMQ_DEFAULT_PASS: ${RMQ_PASS:-pass}
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    hostname: rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmqctl status"]
+      interval: 5s
+      timeout: 1s
+      retries: 5

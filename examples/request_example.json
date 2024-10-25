@@ -1,0 +1,10 @@
+{
+    "stock_symbol": "AAPL",
+    "volatility": 0.25,
+    "average_return": 0.04,
+    "market_correlation": 0.85,
+    "historical_returns": [0.03, 0.04, 0.05, 0.02, 0.06],
+    "volume": [120000, 110000, 130000, 140000, 125000],
+    "market_index": [3000, 3050, 3100, 3020, 3080]
+}
+
